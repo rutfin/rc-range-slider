@@ -118,7 +118,6 @@
 
       /**
        * Shows tooltip on the handle that is currently being moved.
-       * << Author: Rubenson Barrios >>
        */
       showTooltip: React.PropTypes.bool,
 
@@ -137,7 +136,6 @@
       /**
        * The color to set on the bars between the handles.
        * barClassName will be DEPRECATED
-       * << Author: Rubenson Barrios >>
        */
       barColour: React.PropTypes.array,
 
