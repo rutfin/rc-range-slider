@@ -117,6 +117,12 @@
       handleActiveClassName: React.PropTypes.string,
 
       /**
+       * Shows tooltip on the handle that is currently being moved.
+       * << Author: Rubenson Barrios >>
+       */
+      showTooltip: React.PropTypes.bool,
+
+      /**
        * If `true` bars between the handles will be rendered.
        */
       withBars: React.PropTypes.bool,
@@ -127,6 +133,13 @@
        * e.g. `bar-0`, `bar-1`, ...
        */
       barClassName: React.PropTypes.string,
+
+      /**
+       * The color to set on the bars between the handles.
+       * barClassName will be DEPRECATED
+       * << Author: Rubenson Barrios >>
+       */
+      barColour: React.PropTypes.array,
 
       /**
        * If `true` the active handle will push other handles
@@ -183,6 +196,8 @@
         handleClassName: 'handle',
         handleActiveClassName: 'active',
         barClassName: 'bar',
+        barColour: [],
+        showTooltip: false,
         withBars: false,
         pearling: false,
         disabled: false,
@@ -309,11 +324,7 @@
 
     // calculates the offset of a handle in pixels based on its value.
     _calcOffset: function (value) {
-      var range = this.props.max - this.props.min;
-      if (range === 0) {
-        return 0;
-      }
-      var ratio = (value - this.props.min) / range;
+      var ratio = (value - this.props.min) / (this.props.max - this.props.min);
       return ratio * this.state.upperBound;
     },
 
@@ -662,7 +673,7 @@
       return parseFloat(alignValue.toFixed(5));
     },
 
-    _renderHandle: function (style, child, i) {
+    _renderTooltip: function (style, child, i) {
       var className = this.props.handleClassName + ' ' +
         (this.props.handleClassName + '-' + i) + ' ' +
         (this.state.index === i ? this.props.handleActiveClassName : '');
@@ -681,7 +692,30 @@
       );
     },
 
-    _renderHandles: function (offset) {
+    _renderHandle: function (style, child, i, value) {
+      var className = this.props.handleClassName + ' ' +
+        (this.props.handleClassName + '-' + i) + ' ' +
+        (this.state.index === i ? this.props.handleActiveClassName : '');
+
+      return (
+        React.createElement('div', {
+            ref: 'handle' + i,
+            key: 'handle' + i,
+            className: className,
+            style: style,
+            onMouseDown: this._createOnMouseDown(i),
+            onTouchStart: this._createOnTouchStart(i)
+          },
+          React.createElement("div", {
+              'aria-label': value[i],
+          },
+            child
+          )
+        )
+      );
+    },
+
+    _renderHandles: function (offset, value) {
       var length = offset.length;
 
       var styles = this.tempArray;
@@ -693,23 +727,28 @@
       var renderHandle = this._renderHandle;
       if (React.Children.count(this.props.children) > 0) {
         React.Children.forEach(this.props.children, function (child, i) {
-          res[i] = renderHandle(styles[i], child, i);
+          res[i] = renderHandle(styles[i], child, i, value);
         });
       } else {
         for (i = 0; i < length; i++) {
-          res[i] = renderHandle(styles[i], null, i);
+          res[i] = renderHandle(styles[i], null, i, value);
         }
       }
       return res;
     },
 
     _renderBar: function (i, offsetFrom, offsetTo) {
+      const styleColour = this._buildBarStyle(offsetFrom, this.state.upperBound - offsetTo);
+      if (this.props.barColour && this.props.barColour.length) {
+        styleColour.backgroundColor = this.props.barColour[i];
+      }
+
       return (
         React.createElement('div', {
           key: 'bar' + i,
           ref: 'bar' + i,
           className: this.props.barClassName + ' ' + this.props.barClassName + '-' + i,
-          style: this._buildBarStyle(offsetFrom, this.state.upperBound - offsetTo)
+          style: styleColour
         })
       );
     },
@@ -772,7 +811,7 @@
       }
 
       var bars = props.withBars ? this._renderBars(offset) : null;
-      var handles = this._renderHandles(offset);
+      var handles = this._renderHandles(offset, value);
 
       return (
         React.createElement('div', {
