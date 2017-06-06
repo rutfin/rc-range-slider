@@ -1,19 +1,17 @@
 {
-  "name": "react-slider",
-  "version": "0.5.0",
-  "description": "Slider component for React",
-  "main": "react-slider.js",
+  "name": "rc-range-slider",
+  "version": "0.0.1",
+  "description": "Range Slider component for React",
+  "main": "rc-range-slider.js",
   "keywords": [
     "react-component",
     "react",
+    "range",
     "slider",
     "component"
   ],
-  "author": "Michał Powaga <michalpowaga13@gmail.com>",
-  "contributors": [{
-    "name": "Florian Klampfer",
-    "email": "f.klampfer@gmail.com"
-  }],
+  "author": "Rubenson Barrios <rutfin69@gmail.com>",
+  "contributors": [],
   "license": "MIT",
   "moduleType": [
     "amd",

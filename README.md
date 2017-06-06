@@ -1,7 +1,8 @@
-# React Slider
+# RC RANGE Slider
 
 CSS agnostic slider component for React.
 
+This is a new branch from
 See demo: [https://mpowaga.github.io/react-slider/](https://mpowaga.github.io/react-slider/)
 
 ### Important Note
@@ -11,7 +12,7 @@ This is an alpha release. Use with caution and hope.
 ### Installation
 
 ```sh
-npm install react-slider
+npm install rc-range-slider
 ```
 
 ### Overview
@@ -27,7 +28,7 @@ React.render(<ReactSlider defaultValue={50} />, document.body);
 #### Double slider (with bars between the handles):
 
 ```javascript
-React.render(<ReactSlider defaultValue={[0, 100]} withBars />, document.body);
+React.render(<ReactSlider defaultValue={[0, 100]} withBars barColour=['red', 'blue', 'green'] />, document.body);
 ```
 
 #### Multi slider:
