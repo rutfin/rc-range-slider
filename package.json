@@ -1,8 +1,8 @@
 {
-  "name": "rc-range-slider",
+  "name": "rc-rangeslider",
   "version": "0.0.1",
   "description": "Range Slider component for React",
-  "main": "rc-range-slider.js",
+  "main": "rc-rangeslider.js",
   "keywords": [
     "react-component",
     "react",
@@ -11,15 +11,14 @@
     "component"
   ],
   "author": "Rubenson Barrios <rutfin69@gmail.com>",
-  "contributors": [
-  ],
+  "contributors": [],
   "license": "MIT",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/rutfin/rc-range-slider.git"
+    "url": "https://github.com/rutfin/rc-rangeslider.git"
   },
   "peerDependencies": {
     "react": ">=0.14 || ^15.4",

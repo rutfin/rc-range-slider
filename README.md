@@ -1,4 +1,4 @@
-# RC RANGE Slider
+# RC RANGESlider
 
 CSS agnostic slider component for React.
 
@@ -12,7 +12,7 @@ This is an alpha release. Use with caution and hope.
 ### Installation
 
 ```sh
-npm install rc-range-slider
+npm install rc-rangeslider
 ```
 
 ### Overview
