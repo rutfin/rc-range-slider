@@ -13,16 +13,15 @@
   "author": "Rubenson Barrios <rutfin69@gmail.com>",
   "contributors": [],
   "license": "MIT",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "scripts": {   
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/rutfin/rc-rangeslider.git"
   },
   "peerDependencies": {
-    "react": ">=0.14 || ^15.4",
+    "react": "^0.14 || ^15.0.0-rc || ^15.0",
     "prop-types": "^15.4",
-    "create-react-class": "^15.5"
+    "create-react-class": "^15.4 || ^15.5 || ^15.5.2"
   }
 }
