@@ -2,11 +2,11 @@
   if (typeof define === 'function' && define.amd) {
     define(['react','prop-types','create-react-class'], factory);
   } else if (typeof exports === 'object') {
-    module.exports = factory(require('react'),require('prop-types'),require('create-react-class'));
+    module.exports = factory(require('react'),require('prop-types'));
   } else {
-    root.ReactSlider = factory(root.React,root.PropTypes,root.createReactClass);
+    root.ReactSlider = factory(root.React,root.PropTypes);
   }
-}(this, function (React, PropTypes, createReactClass) {
+}(this, function (React, PropTypes) {
 
   /**
    * To prevent text selection while dragging.
@@ -44,7 +44,7 @@
 
   // undoEnsureArray(ensureArray(x)) === x
 
-  var ReactSlider = createReactClass({
+  var ReactSlider = React.createClass({
     displayName: 'ReactSlider',
 
     propTypes: {
