@@ -1,6 +1,6 @@
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
-    define(['react','prop-types','create-react-class'], factory);
+    define(['react','prop-types'], factory);
   } else if (typeof exports === 'object') {
     module.exports = factory(require('react'),require('prop-types'));
   } else {
