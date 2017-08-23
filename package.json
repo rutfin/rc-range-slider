@@ -1,6 +1,6 @@
 {
   "name": "rc-rangeslider",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Range Slider component for React",
   "main": "rc-rangeslider.js",
   "repository": {
