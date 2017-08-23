@@ -119,7 +119,7 @@
       /**
        * Shows tooltip on the handle that is currently being moved.
        */
-      showTooltip: React.PropTypes.bool,
+      showTooltip: PropTypes.bool,
 
       /**
        * If `true` bars between the handles will be rendered.
@@ -137,7 +137,7 @@
        * The color to set on the bars between the handles.
        * barClassName will be DEPRECATED
        */
-      barColour: React.PropTypes.array,
+      barColour: PropTypes.array,
 
       /**
        * If `true` the active handle will push other handles
