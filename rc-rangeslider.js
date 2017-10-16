@@ -306,7 +306,7 @@
           handleSize: handle[size],
           sliderStart: this.props.invert ? sliderMax : sliderMin
         });
-      }.bind(this), 0);
+      }.bind(this), 1);
 
       this.pendingResizeTimeouts.push(resizeTimeout);
     },
