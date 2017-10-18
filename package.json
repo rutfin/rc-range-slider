@@ -5,7 +5,7 @@
   "main": "rc-rangeslider.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rutfin/rc-range-slider.git"
+    "url": "git+https://github.com/rutfin/rc-rangeslider.git"
   },
   "keywords": [
     "slider",
@@ -15,9 +15,9 @@
   "author": "Rubenson Barrios <rutfin69@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/rutfin/rc-range-slider/issues"
+    "url": "https://github.com/rutfin/rc-rangeslider/issues"
   },
-  "homepage": "https://github.com/rutfin/rc-range-slider#readme",
+  "homepage": "https://github.com/rutfin/rc-rangeslider#readme",
   "peerDependencies": {
     "react": ">=0.14 || ^15.4",
     "prop-types": "^15.4",
