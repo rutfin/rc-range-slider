@@ -1,12 +1,12 @@
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
-    define(['react','prop-types'], factory);
+    define(['react','prop-types','create-react-class'], factory);
   } else if (typeof exports === 'object') {
-    module.exports = factory(require('react'),require('prop-types'));
+    module.exports = factory(require('react'),require('prop-types'),require('create-react-class'));
   } else {
-    root.ReactSlider = factory(root.React,root.PropTypes);
+    root.ReactSlider = factory(root.React,root.PropTypes,root.createReactClass);
   }
-}(this, function (React, PropTypes) {
+}(this, function (React, PropTypes, createReactClass) {
 
   /**
    * To prevent text selection while dragging.
