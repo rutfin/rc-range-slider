@@ -44,7 +44,7 @@
 
   // undoEnsureArray(ensureArray(x)) === x
 
-  var ReactSlider = React.createClass({
+  var ReactSlider = createReactClass({
     displayName: 'ReactSlider',
 
     propTypes: {
