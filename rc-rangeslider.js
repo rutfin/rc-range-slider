@@ -42,6 +42,10 @@
     return x != null && x.length === 1 ? x[0] : x;
   }
 
+  var isArray = Array.isArray || function(x) {
+    return Object.prototype.toString.call(x) === '[object Array]';
+  };
+
   // undoEnsureArray(ensureArray(x)) === x
 
   var ReactSlider = createReactClass({
@@ -245,7 +249,7 @@
       // If an upperBound has not yet been determined (due to the component being hidden
       // during the mount event, or during the last resize), then calculate it now
       if (this.state.upperBound === 0) {
-        this._handleResize();
+        this._resize();
       }
     },
 
@@ -273,7 +277,7 @@
 
     componentDidMount: function () {
       window.addEventListener('resize', this._handleResize);
-      this._handleResize();
+      this._resize();
     },
 
     componentWillUnmount: function () {
@@ -285,28 +289,31 @@
       return undoEnsureArray(this.state.value);
     },
 
+    _resize: function () {
+      var slider = this.slider;
+      var handle = this.handle0;
+      var rect = slider.getBoundingClientRect();
+
+      var size = this._sizeKey();
+
+      var sliderMax = rect[this._posMaxKey()];
+      var sliderMin = rect[this._posMinKey()];
+
+      this.setState({
+        upperBound: slider[size] - handle[size],
+        sliderLength: Math.abs(sliderMax - sliderMin),
+        handleSize: handle[size],
+        sliderStart: this.props.invert ? sliderMax : sliderMin
+      });
+    },
+
     _handleResize: function () {
       // setTimeout of 0 gives element enough time to have assumed its new size if it is being resized
       var resizeTimeout = window.setTimeout(function() {
         // drop this timeout from pendingResizeTimeouts to reduce memory usage
         this.pendingResizeTimeouts.shift();
-
-        var slider = this.refs.slider;
-        var handle = this.refs.handle0;
-        var rect = slider.getBoundingClientRect();
-
-        var size = this._sizeKey();
-
-        var sliderMax = rect[this._posMaxKey()];
-        var sliderMin = rect[this._posMinKey()];
-
-        this.setState({
-          upperBound: slider[size] - handle[size],
-          sliderLength: Math.abs(sliderMax - sliderMin),
-          handleSize: handle[size],
-          sliderStart: this.props.invert ? sliderMax : sliderMin
-        });
-      }.bind(this), 1);
+        this._resize();
+      }.bind(this), 0);
 
       this.pendingResizeTimeouts.push(resizeTimeout);
     },
@@ -322,7 +329,11 @@
 
     // calculates the offset of a handle in pixels based on its value.
     _calcOffset: function (value) {
-      var ratio = (value - this.props.min) / (this.props.max - this.props.min);
+      var range = this.props.max - this.props.min;
+      if (range === 0) {
+        return 0;
+      }
+      var ratio = (value - this.props.min) / range;
       return ratio * this.state.upperBound;
     },
 
@@ -410,6 +421,13 @@
       ];
     },
 
+    _getKeyDownEventMap: function () {
+      return {
+        'keydown': this._onKeyDown,
+        'focusout': this._onBlur
+      }
+    },
+
     _getMouseEventMap: function () {
       return {
         'mousemove': this._onMouseMove,
@@ -422,6 +440,16 @@
         'touchmove': this._onTouchMove,
         'touchend': this._onTouchEnd
       }
+    },
+
+    // create the `keydown` handler for the i-th handle
+    _createOnKeyDown: function (i) {
+      return function (e) {
+        if (this.props.disabled) return;
+        this._start(i);
+        this._addHandlers(this._getKeyDownEventMap());
+        pauseEvent(e);
+      }.bind(this);
     },
 
     // create the `mousedown` handler for the i-th handle
@@ -461,9 +489,11 @@
     },
 
     _start: function (i, position) {
+      var activeEl = document.activeElement;
+      var handleRef = this['handle' + i];
       // if activeElement is body window will lost focus in IE9
-      if (document.activeElement && document.activeElement != document.body) {
-        document.activeElement.blur && document.activeElement.blur();
+      if (activeEl && activeEl != document.body && activeEl != handleRef) {
+        activeEl.blur && activeEl.blur();
       }
 
       this.hasMoved = false;
@@ -474,11 +504,13 @@
       zIndices.splice(zIndices.indexOf(i), 1); // remove wherever the element is
       zIndices.push(i); // add to end
 
-      this.setState({
-        startValue: this.state.value[i],
-        startPosition: position,
-        index: i,
-        zIndices: zIndices
+      this.setState(function (prevState) {
+        return {
+          startValue: this.state.value[i],
+          startPosition: position !== undefined ? position : prevState.startPosition,
+          index: i,
+          zIndices: zIndices
+        };
       });
     },
 
@@ -490,6 +522,10 @@
       this._onEnd(this._getTouchEventMap());
     },
 
+    _onBlur: function () {
+      this._onEnd(this._getKeyDownEventMap());
+    },
+
     _onEnd: function (eventMap) {
       this._removeHandlers(eventMap);
       this.setState({index: -1}, this._fireChangeEvent.bind(this, 'onAfterChange'));
@@ -497,7 +533,9 @@
 
     _onMouseMove: function (e) {
       var position = this._getMousePosition(e);
-      this._move(position[0]);
+      var diffPosition = this._getDiffPosition(position[0]);
+      var newValue = this._getValueFromPosition(diffPosition);
+      this._move(newValue);
     },
 
     _onTouchMove: function (e) {
@@ -518,10 +556,56 @@
 
       pauseEvent(e);
 
-      this._move(position[0]);
+      var diffPosition = this._getDiffPosition(position[0]);
+      var newValue = this._getValueFromPosition(diffPosition);
+
+      this._move(newValue);
     },
 
-    _move: function (position) {
+    _onKeyDown: function (e) {
+      if (e.ctrlKey || e.shiftKey || e.altKey) return;
+      switch (e.key) {
+        case "ArrowLeft":
+        case "ArrowUp":
+          e.preventDefault();
+          return this._moveDownOneStep();
+        case "ArrowRight":
+        case "ArrowDown":
+          e.preventDefault();
+          return this._moveUpOneStep();
+        case "Home":
+          return this._move(this.props.min);
+        case "End":
+          return this._move(this.props.max);
+        default:
+          return;
+      }
+    },
+
+    _moveUpOneStep: function () {
+      var oldValue = this.state.value[this.state.index];
+      var newValue = oldValue + this.props.step;
+      this._move(Math.min(newValue, this.props.max));
+    },
+
+    _moveDownOneStep: function () {
+      var oldValue = this.state.value[this.state.index];
+      var newValue = oldValue - this.props.step;
+      this._move(Math.max(newValue, this.props.min));
+    },
+
+    _getValueFromPosition: function (position) {
+      var diffValue = position / (this.state.sliderLength - this.state.handleSize) * (this.props.max - this.props.min);
+      return this._trimAlignValue(this.state.startValue + diffValue);
+    },
+
+    _getDiffPosition: function (position) {
+      var diffPosition = position - this.state.startPosition;
+      if (this.props.invert) diffPosition *= -1;
+      return diffPosition;
+    },
+
+    _move: function (newValue) {
       this.hasMoved = true;
 
       var props = this.props;
@@ -531,12 +615,6 @@
       var value = state.value;
       var length = value.length;
       var oldValue = value[index];
-
-      var diffPosition = position - state.startPosition;
-      if (props.invert) diffPosition *= -1;
-
-      var diffValue = diffPosition / (state.sliderLength - state.handleSize) * (props.max - props.min);
-      var newValue = this._trimAlignValue(state.startValue + diffValue);
 
       var minDistance = props.minDistance;
 
@@ -671,42 +749,34 @@
       return parseFloat(alignValue.toFixed(5));
     },
 
-    _renderTooltip: function (style, child, i) {
-      var className = this.props.handleClassName + ' ' +
-        (this.props.handleClassName + '-' + i) + ' ' +
-        (this.state.index === i ? this.props.handleActiveClassName : '');
-
-      return (
-        React.createElement('div', {
-            ref: 'handle' + i,
-            key: 'handle' + i,
-            className: className,
-            style: style,
-            onMouseDown: this._createOnMouseDown(i),
-            onTouchStart: this._createOnTouchStart(i)
-          },
-          child
-        )
-      );
-    },
-
     _renderHandle: function (style, child, i, value) {
+      var self = this;
       var className = this.props.handleClassName + ' ' +
         (this.props.handleClassName + '-' + i) + ' ' +
         (this.state.index === i ? this.props.handleActiveClassName : '');
 
       return (
         React.createElement('div', {
-            ref: 'handle' + i,
+            ref: function (r) {
+              self['handle' + i] = r;
+            },
             key: 'handle' + i,
             className: className,
             style: style,
             onMouseDown: this._createOnMouseDown(i),
-            onTouchStart: this._createOnTouchStart(i)
+            onTouchStart: this._createOnTouchStart(i),
+            onFocus: this._createOnKeyDown(i),
+            tabIndex: 0,
+            role: "slider",
+            "aria-valuenow": this.state.value[i],
+            "aria-valuemin": this.props.min,
+            "aria-valuemax": this.props.max,
+            "aria-label": isArray(this.props.ariaLabel) ? this.props.ariaLabel[i] : this.props.ariaLabel,
+            "aria-valuetext": this.props.ariaValuetext,
           },
           React.createElement("div", {
               'aria-label': value[i],
-          },
+            },
             child
           )
         )
@@ -721,7 +791,7 @@
         styles[i] = this._buildHandleStyle(offset[i], i);
       }
 
-      var res = this.tempArray;
+      var res = [];
       var renderHandle = this._renderHandle;
       if (React.Children.count(this.props.children) > 0) {
         React.Children.forEach(this.props.children, function (child, i) {
@@ -741,10 +811,13 @@
         styleColour.backgroundColor = this.props.barColour[i];
       }
 
+      var self = this;
       return (
         React.createElement('div', {
           key: 'bar' + i,
-          ref: 'bar' + i,
+          ref: function (r) {
+            self['bar' + i] = r;
+          },
           className: this.props.barClassName + ' ' + this.props.barClassName + '-' + i,
           style: styleColour
         })
@@ -772,8 +845,8 @@
       if (!this.props.snapDragDisabled) {
         var position = this._getMousePosition(e);
         this._forceValueFromPosition(position[0], function (i) {
-          this._fireChangeEvent('onChange');
           this._start(i, position[0]);
+          this._fireChangeEvent('onChange');
           this._addHandlers(this._getMouseEventMap());
         }.bind(this));
       }
@@ -798,6 +871,7 @@
     },
 
     render: function () {
+      var self = this;
       var state = this.state;
       var props = this.props;
 
@@ -813,7 +887,9 @@
 
       return (
         React.createElement('div', {
-            ref: 'slider',
+            ref: function (r) {
+              self.slider = r;
+            },
             style: {position: 'relative'},
             className: props.className + (props.disabled ? ' disabled' : ''),
             onMouseDown: this._onSliderMouseDown,
